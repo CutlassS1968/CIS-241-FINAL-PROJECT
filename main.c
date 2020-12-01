@@ -108,7 +108,8 @@ void userControl(void) {
                 lowPCRatio();
                 break;
             case 3:
-                seriesHighPCRatio();
+                // TODO: FIX seriesHighPCRatio
+//                seriesHighPCRatio();
                 break;
             case 4:
                 // TODO: ADD FUNCTION 4
@@ -168,31 +169,31 @@ void lowPCRatio(void) {
 }
 
 // TODO: THIS is bRoKe
-/**
- * Find the highest put / call ratios that are in sequence to each other;
- * right now this goes to 3, but this needs to be modified to be any variable
- * of sizes
- */
-void seriesHighPCRatio(size_t s) {
-
-    // Initialize highest put call ratios
-    int hPCRs[s];
-    for (int i = 0; i < s; i++) hPCRs[i] = i;
-
-    float temp;
-    float avg = 0;
-    for (int i = 0; i < LINES; i++) {
-        temp = (data[i].pcRatio + data[i - 1].pcRatio + data[i - 2].pcRatio) / 3;
-        if (temp > avg) {
-            avg = temp;
-            for (int j = 0; j < s; j++)
-            hPCRs[j] = i - (s - j);
-//            hPCRs[j] = i - 1;
-//            hPCRs[j] = i - 2;
-        }
-    }
-    printSeries(hPCRs);
-}
+///**
+// * Find the highest put / call ratios that are in sequence to each other;
+// * right now this goes to 3, but this needs to be modified to be any variable
+// * of sizes
+// */
+//void seriesHighPCRatio(size_t s) {
+//
+//    // Initialize highest put call ratios
+//    int hPCRs[s];
+//    for (int i = 0; i < s; i++) hPCRs[i] = i;
+//
+//    float temp;
+//    float avg = 0;
+//    for (int i = 0; i < LINES; i++) {
+//        temp = (data[i].pcRatio + data[i - 1].pcRatio + data[i - 2].pcRatio) / 3;
+//        if (temp > avg) {
+//            avg = temp;
+//            for (int j = 0; j < s; j++)
+//            hPCRs[j] = i - (s - j);
+////            hPCRs[j] = i - 1;
+////            hPCRs[j] = i - 2;
+//        }
+//    }
+//    printSeries(hPCRs);
+//}
 
 /**
  * Print out the values in an index
