@@ -158,7 +158,7 @@ void highPCRatio(void) {
  */
 void lowPCRatio(void) {
     int c = 0;
-    float min = 0;
+    float min = 10;
     for (int i = 0; i < LINES; i++) {
         if (data[i].pcRatio < min) {
             c = i;
