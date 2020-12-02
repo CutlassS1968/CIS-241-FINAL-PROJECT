@@ -31,7 +31,7 @@ void seqLowPCRatio(size_t l);
 /** Various printing functions */
 void printSequence(const int* seq, size_t l);
 void printIndex(int c);
-void printData(void);
+void printData(size_t l);
 
 
 struct index {
@@ -117,7 +117,9 @@ void userControl(void) {
                 // TODO: ADD FUNCTION 8
                 break;
             case 9:
-                // TODO: ADD FUNCTION 9
+                printf("How many entries do you want to see per page?\n");
+                scanf("%lu", &l);
+                printData(l);
                 break;
             default:
                 printf("Could not find the selected option\n");
@@ -168,6 +170,10 @@ void display(void) {
            "[3]\t\tView a sequence of the highest put / call ratio's\n"
            "[4]\t\tView a sequence of the lowest put / call ratio's\n"
            "[5]\t\tView [insert function here]\n"
+           "[6]\t\tView [insert function here]\n"
+           "[7]\t\tView [insert function here]\n"
+           "[8]\t\tView [insert function here]\n"
+           "[9]\t\tView entire SPY index\n"
            "[0]\t\tExit Program...\n");
     printf("---------------------------------------------------------\n");
 }
@@ -257,8 +263,8 @@ void seqLowPCRatio(size_t l) {
  * @param c index to be printed
  */
 void printIndex(int c) {
-    printf("Date\t\t Put\\Call Ratio\t\tPut Volume\t\tCall Volume\t\tTotal Volume\n");
-    printf("%-9s\t %0.2f\t\t\t\t%-8d\t\t%-8d\t\t%-10d\n",
+    printf("Date\t   Put\\Call Ratio\t  Put Volume\t Call Volume\t  Total Volume\n");
+    printf("%-9s\t\t\t %0.2f\t\t%8d\t\t%8d\t\t%10d\n",
            data[c].date, data[c].pcRatio, data[c].pVol, data[c].cVol, data[c].tVol);
     printf("\nPress ENTER to Continue");
     getchar();
@@ -271,9 +277,9 @@ void printIndex(int c) {
  * @param l
  */
 void printSequence(const int* seq, size_t l) {
-    printf("Date\t\t Put\\Call Ratio\t\tPut Volume\t\tCall Volume\t\tTotal Volume\n");
+    printf("Date\t   Put\\Call Ratio\t  Put Volume\t Call Volume\t  Total Volume\n");
     for (int i = 0; i < l; i++) {
-        printf("%-9s\t %0.2f\t\t\t\t%-8d\t\t%-8d\t\t%-10d\n",
+        printf("%-9s\t\t\t %0.2f\t\t%8d\t\t%8d\t\t%10d\n",
                data[seq[i]].date, data[seq[i]].pcRatio,
                data[seq[i]].pVol, data[seq[i]].cVol, data[seq[i]].tVol);
     }
@@ -283,11 +289,21 @@ void printSequence(const int* seq, size_t l) {
 }
 
 /**
- * Print out all values in the data struct
+ * Print out all values in the data struct in pages
+ * TODO: sorta broke with getchar() procking on printf() instead of user input
  */
-void printData(void) {
+void printData(size_t l) {
+    int c = 1;
+    printf("-----------------------------------Page %d-----------------------------------\n", c);
+    printf("Date\t   Put\\Call Ratio\t  Put Volume\t Call Volume\t  Total Volume\n");
     for (int i = 0; i < LINES; i++) {
-        printf("date=%-10s\tpcRatio=%-4g\tpVol=%-8i\tcVol=%-8i\ttVol=%-10i\n",
-               data[i].date, data[i].pcRatio, data[i].pVol, data[i].cVol, data[i].tVol);
+        printf("%-9s\t\t\t %0.2f\t\t%8d\t\t%8d\t\t%10d\n", data[i].date, data[i].pcRatio, data[i].pVol, data[i].cVol, data[i].tVol);
+        if ((i + 1) % l == 0) {
+            printf("-----------------------------------Page %d-----------------------------------\n", c);
+            printf("\nPress ENTER to Continue...\n");
+            getchar();
+            c++;
+            printf("-----------------------------------Page %d-----------------------------------\n", c);
+        }
     }
 }
