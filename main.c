@@ -5,7 +5,7 @@
  * This program analyzes data from the SPY Index over the
  * last 10 years and presents different statistics.
  *
- * @authors Evan Johns, Andreas Martinez, Andrew Regan
+ * @authors Andrew Regan, Andreas Martinez, Evan Johns
  * @date 12/1/2020
  *
  */
