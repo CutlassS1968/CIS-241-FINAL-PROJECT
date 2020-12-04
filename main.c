@@ -6,7 +6,7 @@
  * last 10 years and presents different statistics.
  *
  * @authors Andreas Martinez, Andrew Regan, Evan Johns
- * @date 12/1/2020
+ * @date 12/4/2020
  *
  */
 
@@ -23,17 +23,21 @@ void userControl(void);
 void display(void);
 
 /** Different statistical functions */
-void highPCRatio(void);
-void lowPCRatio(void);
+void highestPCRatio(void);
+void lowestPCRatio(void);
 void seqHighPCRatio(size_t l);
 void seqLowPCRatio(size_t l);
+void findHighPCRatios(void);
+void findLowPCRatios(void);
+void seqPCRatioFromUser(size_t l, float userPCR, char operation);
 
 /** Various printing functions */
 void printSequence(const int* seq, size_t l);
 void printIndex(int c);
 void printData(size_t l);
+void findDataByDate(char*);
 
-
+/** structure for each entry in the file*/
 struct index {
     char date[10];
     float pcRatio;
@@ -72,7 +76,6 @@ void readFile(char *filename) {
     }
 
     fclose(fp);
-//    printData();  // FOR DEBUG
 }
 
 /**
@@ -80,8 +83,11 @@ void readFile(char *filename) {
  * they want to do and executes the corresponding functions
  */
 void userControl(void) {
-    int c;
-    size_t l;   // user's desired length for a sequence of indexes
+    int c;      // User's chosen operation
+    size_t l;   // User's desired length for a sequence of indexes'
+    float pcr;  // User's chosen Put / Call ratio
+    char date[10];
+    char operation;
     do {
         display();
         scanf("%i", &c);
@@ -89,10 +95,10 @@ void userControl(void) {
             case 0:
                 break;
             case 1:
-                highPCRatio();
+                highestPCRatio();
                 break;
             case 2:
-                lowPCRatio();
+                lowestPCRatio();
                 break;
             case 3:
                 printf("How many days in sequence do you want to analyze?\n");
@@ -105,16 +111,30 @@ void userControl(void) {
                 seqLowPCRatio(l);
                 break;
             case 5:
-                // TODO: ADD FUNCTION 5 [COULD BE LOOK UP SPY FROM GIVEN DATE]
+                findHighPCRatios();
                 break;
             case 6:
-                // TODO: ADD FUNCTION 6
+                findLowPCRatios();
                 break;
             case 7:
-                // TODO: ADD FUNCTION 7
+                printf("How many days in sequence do you want to analyze\n");
+                scanf("%lu", &l);
+                printf("Enter the put / call ratio to search by\n");
+                scanf("%f", &pcr);
+                printf("Would you like to analyze dates with a put / call ratio greater or less than %.2lf on average? [<, >]\n", pcr);
+                getchar();
+                operation = getchar();
+                while (operation != '>' && operation != '<') {
+                    printf("Please enter [<] or [>] to analyze the put / call ratio\n");
+                    getchar();
+                    operation = getchar();
+                }
+                seqPCRatioFromUser(l, pcr, operation);
                 break;
             case 8:
-                // TODO: ADD FUNCTION 8
+                printf("Please enter a date in the format [MM/DD/YY]: ");
+                scanf("%s", date);
+                findDataByDate(date);
                 break;
             case 9:
                 printf("How many entries do you want to see per page?\n");
@@ -126,41 +146,11 @@ void userControl(void) {
         }
         l = 0;
     } while (c != 0);
-    printf("Exiting program...");
+    printf("Exiting program...\n");
 }
 
 /**
  * Displays all possible options
- *
- * NOTE: Instead of having all the options right here, we could give them catagories and they could pick which catagory
- *       and then which corresponding function. This would just essentially be a big switch statement with nested
- *       switch statements. Most of these functions are really easy to make so I just wrote a ton of different ones
- *       as examples
- *
- *          [1]     Put / Call Ratios
- *              [1]     High Put / Call Ratios
- *              [2]     Low Put / Call Ratios
- *              [3]     Highest Put / Call Ratios in sequence
- *              [4]     Lowest Put / Call Ratios in sequence
- *
- *          [2]     Search by date
- *              [1]     Record for a given date
- *              [2]     All records between two given dates
- *
- *          [3]     Total Volume
- *              [1]     Highest Total Volume
- *              [2]     Lowest Total Volume
- *
- *          [4]     Put Volume
- *              [1]     Highest Put Volume
- *              [2]     Lowest Put Volume
- *
- *          [5]     Call Volume
- *              [1]     Highest Call Volume
- *              [2]     Lowest Call Volume
- *
- *          [0]     Exit Program...
- *
  */
 void display(void) {
     printf("---------------------------------------------------------\n");
@@ -169,10 +159,10 @@ void display(void) {
            "[2]\t\tView lowest put / call ratio\n"
            "[3]\t\tView a sequence of the highest put / call ratio's\n"
            "[4]\t\tView a sequence of the lowest put / call ratio's\n"
-           "[5]\t\tView [insert function here]\n"
-           "[6]\t\tView [insert function here]\n"
-           "[7]\t\tView [insert function here]\n"
-           "[8]\t\tView [insert function here]\n"
+           "[5]\t\tView a list of put / call ratio's higher than 3, indicating a market crash\n"
+           "[6]\t\tView a list of put / call ratio's lower than 1, indicating a market boom\n"
+           "[7]\t\tView a sequence of put / call ratio's based on input criteria\n"
+           "[8]\t\tLook up SPY from date\n"
            "[9]\t\tView entire SPY index\n"
            "[0]\t\tExit Program...\n");
     printf("---------------------------------------------------------\n");
@@ -181,7 +171,7 @@ void display(void) {
 /**
  * Calculate the highest Put/Call ratio from the given data set
  */
-void highPCRatio(void) {
+void highestPCRatio(void) {
     int c = 0;
     float max = 0;
     for (int i = 0; i < LINES; i++) {
@@ -196,7 +186,7 @@ void highPCRatio(void) {
 /**
  * Calculate the lowest Put/Call ratio from the given data set
  */
-void lowPCRatio(void) {
+void lowestPCRatio(void) {
     int c = 0;
     float min = 10;
     for (int i = 0; i < LINES; i++) {
@@ -217,7 +207,7 @@ void seqHighPCRatio(size_t l) {
     int hPCRs[l];
     for (int i = 0; i < l; i++) hPCRs[i] = i;
 
-    float tavg, avg, sum = 0;
+    float tavg, avg = 0, sum = 0;
     for (int i = l; i < LINES; i++) {
 
         // Calculate the avg of the current and previous terms
@@ -242,7 +232,7 @@ void seqLowPCRatio(size_t l) {
     int lPCRs[l];
     for (int i = 0; i < l; i++) lPCRs[i] = i;
 
-    float tavg, avg, sum = 0;
+    float tavg, avg = 0, sum = 0;
     for (int i = l; i < LINES; i++) {
 
         // Calculate the avg of the current and previous terms
@@ -259,6 +249,132 @@ void seqLowPCRatio(size_t l) {
 }
 
 /**
+ * Finds a list of dates where the put call ratio is above 3, which indicates
+ * a market crash, or where the spy closes lower than it opens
+ */
+void findHighPCRatios(void) {
+    // Initialize storage for high put call ratios
+    int listHighPCRs[30];
+    for (int i = 0; i < 30; i++) listHighPCRs[i] = -1;
+
+    int listIndex = 0; // Used to count up listHighPCRs
+
+    // Searches through all dates and finds days with a put call ratio greater than 3
+    // Saves those in array listHighPCRs
+    for (int i = 0; i < LINES; i++) {
+        if (data[i].pcRatio > 3) {
+            listHighPCRs[listIndex] = i;
+            listIndex++;
+        }
+    }
+
+    // Cycles through the array until it finds where the array isn't filled and cuts it off when printing sequence
+    int index = 0;
+    while (listHighPCRs[index] != -1) index++;
+    printSequence(listHighPCRs, index);
+}
+
+/**
+ * Finds a list of dates where the put call ratio is below 1, which indicates
+ * a positive day for the market
+ */
+void findLowPCRatios(void) {
+    // Initialize storage for lowest put call ratios
+    int listLowPCRs[30];
+    for (int i = 0; i < 30; i++) listLowPCRs[i] = -1;
+
+    int listIndex = 0; // Used to count up listLowPCRs
+
+    // Searches through all dates and finds days with a put call ratio lower than 1
+    // Saves those in array listLowPCRs
+    for (int i = 0; i < LINES; i++) {
+        if (data[i].pcRatio < 1) {
+            listLowPCRs[listIndex] = i;
+            listIndex++;
+        }
+    }
+
+    // Cycles through the array until it finds where the array isn't filled and cuts it off when printing sequence
+    int index = 0;
+    while (listLowPCRs[index] != -1) index++;
+    printSequence(listLowPCRs, index);
+}
+
+/**
+ * This function allows the user to search the data for a sequence of dates
+ * that have a PCR average above or below userPCR (a PCR determined by the user)
+ * @param l Size of displayed sequence
+ * @param userPCR   Users chosen Pull / Call Ratio
+ * @param operation Users chosen operation (<, >)
+ */
+void seqPCRatioFromUser(size_t l, float userPCR, char operation) {
+    // Initialize the PCRS
+    int pCRs[l];
+
+    int flag = 0;
+    float tavg, avg = userPCR, sum = 0;
+    for (int i = l; i < LINES; i++) {
+
+        // Calculate the avg of the current and previous terms
+        for (int j = 0; j < l; j++) sum += data[i - (l - j)].pcRatio;
+        tavg = sum / l;
+
+        // If the dates that fit the criteria is found, print the top information
+        if ((tavg < avg || tavg > avg) && flag != 1) {
+            printf("Date\t   Put\\Call Ratio\t  Put Volume\t Call Volume\t  Total Volume\n");
+            flag = 1;
+        }
+
+        // Depending on what the operation performed is, check if the average of the PCR dates
+        // are greater or less than the avg specified by the user, if true print the dates
+        if (operation == '<') {
+            if (tavg < avg) {
+                for (int k = 0; k < l; k++)
+                    printf("%-9s\t\t\t %0.2f\t\t%8d\t\t%8d\t\t%10d\n",
+                           data[i - (l - k)].date, data[i - (l - k)].pcRatio, data[i - (l - k)].pVol,
+                           data[i - (l - k)].cVol, data[i - (l - k)].tVol);;
+                printf("\n");
+            }
+        } else {
+            if (tavg > avg) {
+                for (int k = 0; k < l; k++)
+                    printf("%-9s\t\t\t %0.2f\t\t%8d\t\t%8d\t\t%10d\n",
+                           data[i - (l - k)].date, data[i - (l - k)].pcRatio, data[i - (l - k)].pVol,
+                           data[i - (l - k)].cVol, data[i - (l - k)].tVol);;
+                printf("\n");
+            }
+        }
+        sum = 0;
+    }
+
+    if (flag == 0) {
+        printf("No dates were found that fit that criteria. Press ENTER to Continue\n");
+        getchar();
+        getchar();
+    }
+}
+
+/**
+ * This function finds and prints the SPY data
+ * for a given date
+ */
+void findDataByDate(char date[]) {
+    // Searches the data for the date, if found prints the data and returns back to main
+
+    for (int i = 0; i < LINES; i++) {
+        if (strcmp(data[i].date, date) == 0) {
+            printIndex(i);
+            return;
+        }
+    }
+
+    // If not found, let user know and return to main
+    printf("Date not found.\nPress ENTER to Continue");
+    getchar();
+    getchar();
+}
+
+/**
  * Print out the values in an index
  * @param c index to be printed
  */
@@ -266,31 +382,31 @@ void printIndex(int c) {
     printf("Date\t   Put\\Call Ratio\t  Put Volume\t Call Volume\t  Total Volume\n");
     printf("%-9s\t\t\t %0.2f\t\t%8d\t\t%8d\t\t%10d\n",
            data[c].date, data[c].pcRatio, data[c].pVol, data[c].cVol, data[c].tVol);
-    printf("\nPress ENTER to Continue");
+    printf("\nPress ENTER to Continue\n");
     getchar();
     getchar();
 }
 
 /**
  * Prints a list of indexes
- * @param seq
- * @param l
+ * @param seq The sequence of indexes to be printed
+ * @param l   The Size of the sequence to be printed
  */
 void printSequence(const int* seq, size_t l) {
     printf("Date\t   Put\\Call Ratio\t  Put Volume\t Call Volume\t  Total Volume\n");
     for (int i = 0; i < l; i++) {
-        printf("%-9s\t\t\t %0.2f\t\t%8d\t\t%8d\t\t%10d\n",
+        printf("%-9s\t %0.2f\t\t%8d\t%8d\t%10d\n",
                data[seq[i]].date, data[seq[i]].pcRatio,
                data[seq[i]].pVol, data[seq[i]].cVol, data[seq[i]].tVol);
     }
-    printf("\nPress ENTER to Continue");
+    printf("\nPress ENTER to Continue\n");
     getchar();
     getchar();
 }
 
 /**
  * Print out all values in the data struct in pages
- * TODO: sorta broke with getchar() procking on printf() instead of user input
+ * @param l     The size of lines to be printed
  */
 void printData(size_t l) {
     int c = 1;
